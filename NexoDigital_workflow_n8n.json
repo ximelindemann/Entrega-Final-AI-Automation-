@@ -1,0 +1,864 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "89508a2d-b1d7-4eff-9ed7-497a0bb23117",
+      "name": "Trigger Horario"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app8jfWqWSe6sUqeL",
+          "mode": "list",
+          "cachedResultName": "TP-Pipeline de Contenidos ",
+          "cachedResultUrl": "https://airtable.com/app8jfWqWSe6sUqeL"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl7BHjVwgeNxVDqZ",
+          "mode": "list",
+          "cachedResultName": "Centro de Control",
+          "cachedResultUrl": "https://airtable.com/app8jfWqWSe6sUqeL/tbl7BHjVwgeNxVDqZ"
+        },
+        "filterByFormula": "AND({Estado} = \"Pendiente\", {Idea Semilla} != \"\")",
+        "options": {},
+        "sort": {
+          "property": []
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        -224
+      ],
+      "id": "e470e521-bb34-4a1e-8a67-fb748b0e3796",
+      "name": "Leer Ideas Pendientes",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "M96F2Q1jsMLCrAjR",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5453b3b4-583f-4c1c-9b34-044f2d525850",
+              "leftValue": "={{$json.fields?.[\"Idea Semilla\"] ?? \"\"}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        320,
+        80
+      ],
+      "id": "5a44a5c1-ae8f-4ea9-a9d5-023501615272",
+      "name": "Validar Idea Semilla"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Actúa como redactor de contenidos para Nexo Digital, una agencia de marketing digital para pequeños negocios. A partir de una idea semilla, genera un borrador profesional, claro y orientado a redes sociales. Usa tono cercano pero profesional. No inventes datos ni estadísticas. Devuelve únicamente un JSON válido con estas claves: titulo, borrador, observaciones_qa."
+            },
+            {
+              "content": "=Idea semilla: {{$json.fields[\"Idea Semilla\"]}}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 500,
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object",
+              "verbosity": "low"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        48
+      ],
+      "id": "3944a1a6-34d8-498a-b179-b50a15c18b44",
+      "name": "Generar Borrador IA",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app8jfWqWSe6sUqeL",
+          "mode": "list",
+          "cachedResultName": "TP-Pipeline de Contenidos ",
+          "cachedResultUrl": "https://airtable.com/app8jfWqWSe6sUqeL"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl7BHjVwgeNxVDqZ",
+          "mode": "list",
+          "cachedResultName": "Centro de Control",
+          "cachedResultUrl": "https://airtable.com/app8jfWqWSe6sUqeL/tbl7BHjVwgeNxVDqZ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Aprobado": false,
+            "id": "={{$json.id}}",
+            "Estado": "En revision"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Idea Semilla",
+              "displayName": "Idea Semilla",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Borrador Generado",
+              "displayName": "Borrador Generado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Generando",
+                  "value": "Generando"
+                },
+                {
+                  "name": "En revision",
+                  "value": "En revision"
+                },
+                {
+                  "name": "Aprobado",
+                  "value": "Aprobado"
+                },
+                {
+                  "name": "Rechazado",
+                  "value": "Rechazado"
+                },
+                {
+                  "name": "Publicando",
+                  "value": "Publicando"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachments",
+              "displayName": "Attachments",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Aprobado",
+              "displayName": "Aprobado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha ultima ejecución ",
+              "displayName": "Fecha ultima ejecución ",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Trigger",
+              "displayName": "Trigger",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        544,
+        240
+      ],
+      "id": "f2e72b4f-e311-4123-a6c4-3d23d72dc6a6",
+      "name": "Marcar Sin Datos",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "M96F2Q1jsMLCrAjR",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app8jfWqWSe6sUqeL",
+          "mode": "list",
+          "cachedResultName": "TP-Pipeline de Contenidos ",
+          "cachedResultUrl": "https://airtable.com/app8jfWqWSe6sUqeL"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl7BHjVwgeNxVDqZ",
+          "mode": "list",
+          "cachedResultName": "Centro de Control",
+          "cachedResultUrl": "https://airtable.com/app8jfWqWSe6sUqeL/tbl7BHjVwgeNxVDqZ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Aprobado": false,
+            "id": "={{ $('Generar Borrador IA').item.json.id }}",
+            "Borrador Generado": "={{ $json.message.content }}",
+            "Estado": "En revision"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Idea Semilla",
+              "displayName": "Idea Semilla",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Borrador Generado",
+              "displayName": "Borrador Generado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Generando",
+                  "value": "Generando"
+                },
+                {
+                  "name": "En revision",
+                  "value": "En revision"
+                },
+                {
+                  "name": "Aprobado",
+                  "value": "Aprobado"
+                },
+                {
+                  "name": "Rechazado",
+                  "value": "Rechazado"
+                },
+                {
+                  "name": "Publicando",
+                  "value": "Publicando"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachments",
+              "displayName": "Attachments",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Aprobado",
+              "displayName": "Aprobado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha ultima ejecución ",
+              "displayName": "Fecha ultima ejecución ",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Trigger",
+              "displayName": "Trigger",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        -112
+      ],
+      "id": "73c08509-2cc0-4b27-957e-09cec202c0aa",
+      "name": "Guardar Borrador en Airtable",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "M96F2Q1jsMLCrAjR",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app8jfWqWSe6sUqeL",
+          "mode": "list",
+          "cachedResultName": "TP-Pipeline de Contenidos ",
+          "cachedResultUrl": "https://airtable.com/app8jfWqWSe6sUqeL"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl7BHjVwgeNxVDqZ",
+          "mode": "list",
+          "cachedResultName": "Centro de Control",
+          "cachedResultUrl": "https://airtable.com/app8jfWqWSe6sUqeL/tbl7BHjVwgeNxVDqZ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Aprobado": false,
+            "id": "={{ $json.id }}",
+            "Estado": "Rechazado"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Idea Semilla",
+              "displayName": "Idea Semilla",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Borrador Generado",
+              "displayName": "Borrador Generado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Generando",
+                  "value": "Generando"
+                },
+                {
+                  "name": "En revision",
+                  "value": "En revision"
+                },
+                {
+                  "name": "Aprobado",
+                  "value": "Aprobado"
+                },
+                {
+                  "name": "Rechazado",
+                  "value": "Rechazado"
+                },
+                {
+                  "name": "Publicando",
+                  "value": "Publicando"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachments",
+              "displayName": "Attachments",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Aprobado",
+              "displayName": "Aprobado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha ultima ejecución ",
+              "displayName": "Fecha ultima ejecución ",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Trigger",
+              "displayName": "Trigger",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        144
+      ],
+      "id": "c4511db0-e0b8-4163-a8b0-2e64be3cf7fc",
+      "name": "Registrar error en Airtable",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "M96F2Q1jsMLCrAjR",
+          "name": "Airtable account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "xime.basualdo43@gmail.com",
+        "subject": "=Borrador para revisar: {{ $json.fields?.[\"Idea Semilla\"] ?? \"Sin título\" }}",
+        "message": "=Se generó un nuevo borrador para Nexo Digital.<br><br>Idea semilla: {{ $json.fields?.[\"Idea Semilla\"] }}<br><br>Para aprobarlo, ingresá a Airtable y marcá el campo \"Aprobado\" como TRUE.<br><br>Enlace: https://airtable.com/app8jfWqWSe6sUqeL",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        -112
+      ],
+      "id": "cf426112-1741-4c41-9e4f-0ff06de66fff",
+      "name": "Notificar para Aprobacion Humana",
+      "webhookId": "886d68ee-103b-46b5-9a6f-80a3a8a67115",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "LRBN3YOXhXNBNVId",
+          "name": "Gmail account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Leer Ideas Pendientes": [
+      {
+        "json": {
+          "id": "rec4NacFN1QdrHdyE",
+          "createdTime": "2026-09-12T21:37:58.000Z",
+          "fields": {
+            "Attachment Summary": {
+              "state": "error",
+              "errorType": "emptyDependency",
+              "value": null,
+              "isStale": false
+            }
+          }
+        },
+        "pairedItem": [
+          {
+            "item": 0
+          }
+        ]
+      },
+      {
+        "json": {
+          "id": "recYPXtNSX3OAQrlu",
+          "createdTime": "2026-09-12T21:37:58.000Z",
+          "fields": {
+            "Estado": "En revision",
+            "Borrador Generado": "¿Sentís que publicás en redes sociales a las apuradas y sin un plan claro? Para un pequeño negocio, el tiempo es el recurso más valioso, y la falta de organización puede volverse una carga pesada.\n\nOrganizar un calendario de contenidos no tiene por qué ser complicado. Aquí te compartimos tres pasos prácticos para empezar hoy mismo:\n\n1. **Definí tus pilares de contenido:** No hables solo de venta. Dividí tus publicaciones en categorías como consejos útiles, el detrás de escena de tu trabajo y testimonios de clientes. Esto mantiene tu perfil variado e interesante.\n2. **Establecé una frecuencia real:** Es mejor publicar tres veces por semana de forma constante que hacerlo todos los días durante una semana y luego desaparecer. La clave es la regularidad, no la cantidad.\n3. **Usá la tecnología a tu favor:** Existen herramientas sencillas para programar tus posts. Dejar tus contenidos listos de antemano te libera tiempo mental para enfocarte en atender a tus clientes y hacer crecer tu marca.\n\nEn Nexo Digital te ayudamos a simplificar este proceso. Nos especializamos en organizar calendarios de contenidos y automatizar esas tareas repetitivas que te quitan tiempo, para que tu comunicación sea profesional, clara y efectiva sin necesidad de un equipo grande.\n\n¿Querés ordenar tu presencia digital y ganar tranquilidad? Escribinos y empecemos a optimizar tu trabajo hoy mismo.",
+            "Attachment Summary": {
+              "state": "error",
+              "errorType": "emptyDependency",
+              "value": null,
+              "isStale": false
+            },
+            "Idea Semilla": "Como organizar un calendario de contenidos para una marca pequena",
+            "Trigger": "2026-09-13T20:46:47.000Z"
+          }
+        },
+        "pairedItem": [
+          {
+            "item": 0
+          }
+        ]
+      },
+      {
+        "json": {
+          "id": "reckazmON74byYSQw",
+          "createdTime": "2026-09-12T21:37:58.000Z",
+          "fields": {
+            "Estado": "Publicando",
+            "Borrador Generado": "¿Sentís que las tareas operativas te quitan tiempo para hacer crecer tu emprendimiento? ⏳\n\nEn Nexo Digital sabemos que, para un pequeño negocio, cada minuto cuenta. Automatizar esos procesos que repetís una y otra vez no es solo una cuestión tecnológica, es la clave para recuperar tu productividad.\n\nAcá te contamos 3 beneficios directos de sumar automatización a tu día a día:\n\n1️⃣ Recuperás tiempo valioso: Al delegar tareas mecánicas en herramientas digitales, liberás horas de tu agenda para enfocarte en la estrategia y en lo que realmente hace crecer a tu marca.\n\n2️⃣ Reducís errores y ganás orden: La automatización elimina los fallos manuales y centraliza tu información, permitiendo que tu negocio funcione de forma más prolija y eficiente.\n\n3️⃣ Sostenés tu presencia digital sin esfuerzo extra: Organizar calendarios y programar contenidos te permite mantenerte cerca de tu audiencia de manera constante, incluso cuando estás descansando o atendiendo otras áreas.\n\nTransformá tu forma de trabajar y hacé que la tecnología trabaje para vos.\n\n🚀 ¿Querés optimizar tus procesos pero no sabés por dónde empezar? En Nexo Digital te ayudamos a simplificar tu camino. ¡Escribinos y empecemos hoy!",
+            "Attachment Summary": {
+              "state": "error",
+              "errorType": "emptyDependency",
+              "value": null,
+              "isStale": false
+            },
+            "Idea Semilla": "Tres beneficios de automatizar tareas repetitivas en un pequeno negocio",
+            "Trigger": "2026-09-13T21:11:27.000Z"
+          }
+        },
+        "pairedItem": [
+          {
+            "item": 0
+          }
+        ]
+      }
+    ]
+  },
+  "connections": {
+    "Trigger Horario": {
+      "main": [
+        [
+          {
+            "node": "Leer Ideas Pendientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Ideas Pendientes": {
+      "main": [
+        [
+          {
+            "node": "Validar Idea Semilla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Idea Semilla": {
+      "main": [
+        [
+          {
+            "node": "Generar Borrador IA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar Sin Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Borrador IA": {
+      "main": [
+        [
+          {
+            "node": "Guardar Borrador en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar error en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Borrador en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Notificar para Aprobacion Humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b42ff3a7-3381-4586-bc42-17294bd9fcc5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de76e73c0bc83fa7f1f5ea51274e30edc9b88c12aaebadc9b81d08bc7f90fafb"
+  },
+  "nodeGroups": [],
+  "id": "9VspyXCL1SGKsAxL",
+  "tags": []
+}
