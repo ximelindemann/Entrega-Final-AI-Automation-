@@ -42,6 +42,9 @@ Trigger Horario → Leer Ideas Pendientes (Airtable) → Validar Idea Semilla
 | 4 | Documentación de Seguridad y Resiliencia | `04_Seguridad_Resiliencia_NexoDigital.pdf` |
 | 5 | Dashboard de Control | [Airtable Shared View](https://airtable.com/app8jfWqWSe6sUqeL) |
 
+## Dashboard de Control
+[Acceder al Dashboard](https://airtable.com/app8jfWqWSe6sUqeL/shrhtnQkyZ3WUzaN0)
+
 ## Archivos Técnicos
 
 - `NexoDigital_workflow_n8n.json` — JSON exportado del flujo n8n completo
